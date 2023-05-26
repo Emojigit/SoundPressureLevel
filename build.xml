@@ -25,7 +25,7 @@
     <depend srcdir="src" destdir="${AndroidRuntime-classes.dir}">
       <include name="**/helpers/*.java" />
     </depend>
-    <javac target="7" source="7" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
+    <javac target="8" source="8" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
            includeantruntime="false">
       <classpath>
         <fileset dir="lib/appinventor">
@@ -45,7 +45,7 @@
       <include name="**/*.java" />
       <exclude name="**/helpers/*.java" />
     </depend>
-    <javac target="7" source="7" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
+    <javac target="8" source="8" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
            includeantruntime="false">
       <classpath>
         <fileset dir="lib/appinventor">
