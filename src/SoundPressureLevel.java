@@ -80,14 +80,6 @@ public class SoundPressureLevel extends AndroidNonvisibleComponent
             public void run() {
                 while(threadRunning){
                     Log.d(LOG_TAG, "spl thread loop");
-                    try {
-                        Thread.sleep( (long) listenIntervalMilliSeconds);
-                        synchronized(this) {
-                            while (threadSuspended) Thread.sleep(1);
-                        }
-                    } catch (InterruptedException e) {
-                        Log.d(LOG_TAG, "spl thread sleep error");
-                    }
                     if (!threadSuspended) {
                         if (checkPermissions()) {
                             if (getRecording()) {
@@ -107,6 +99,14 @@ public class SoundPressureLevel extends AndroidNonvisibleComponent
                         else {
                             Log.d(LOG_TAG,"spl Permission to record audio not granted, cannot calculate sound pressure level.");
                         }
+                    }
+                    try {
+                        Thread.sleep( (long) listenIntervalMilliSeconds);
+                        synchronized(this) {
+                            while (threadSuspended) Thread.sleep(1);
+                        }
+                    } catch (InterruptedException e) {
+                        Log.d(LOG_TAG, "spl thread sleep error");
                     }
                 }
                 Log.d(LOG_TAG, "spl thread end");
