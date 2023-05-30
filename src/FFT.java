@@ -1,69 +1,50 @@
 package com.rit.appinventor.components.runtime;
 
 /******************************************************************************
- *  Compilation:  javac FFT.java
- *  Execution:    java FFT n
  *  Dependencies: Complex.java
  *
- *  Compute the FFT and inverse FFT of a length n complex sequence
- *  using the radix 2 Cooley-Tukey algorithm.
-
- *  Bare bones implementation that runs in O(n log n) time. Our goal
- *  is to optimize the clarity of the code, rather than performance.
- *
- *  Limitations
- *  -----------
- *   -  assumes n is a power of 2
- *
- *   -  not the most memory efficient algorithm (because it uses
- *      an object type for representing complex numbers and because
- *      it re-allocates memory for the subarray, instead of doing
- *      in-place or reusing a single temporary array)
- *  
- *  For an in-place radix 2 Cooley-Tukey FFT, see
- *  https://introcs.cs.princeton.edu/java/97data/InplaceFFT.java.html
- *
- * Courtesy of Robert Sedgewick and Kevin Wayne
- * Original source can be found at https://introcs.cs.princeton.edu/java/97data/FFT.java.html
+ *  This code combines two Java sources:
+ *  1. https://introcs.cs.princeton.edu/java/97data/InplaceFFT.java.html
+ *  2. https://introcs.cs.princeton.edu/java/97data/FFT.java.html
+ *  It included all the functions from FFT.java while avoiding the stack overflow problem.
+ *  The main() is removed as it is not required.
  ******************************************************************************/
 
 public class FFT {
 
-    // compute the FFT of x[], assuming its length is a power of 2
+    // compute the FFT of x[]
+    // precondition: the length of x[] is a power of 2
     public static Complex[] fft(Complex[] x) {
+        // check that length is a power of 2
         int n = x.length;
-
-        // base case
-        if (n == 1) return new Complex[] { x[0] };
-
-        // radix 2 Cooley-Tukey FFT
-        if (n % 2 != 0) {
+        if (Integer.highestOneBit(n) != n) {
             throw new IllegalArgumentException("n is not a power of 2");
         }
 
-        // fft of even terms
-        Complex[] even = new Complex[n/2];
-        for (int k = 0; k < n/2; k++) {
-            even[k] = x[2*k];
+        // bit reversal permutation
+        int shift = 1 + Integer.numberOfLeadingZeros(n);
+        for (int k = 0; k < n; k++) {
+            int j = Integer.reverse(k) >>> shift;
+            if (j > k) {
+                Complex temp = x[j];
+                x[j] = x[k];
+                x[k] = temp;
+            }
         }
-        Complex[] q = fft(even);
 
-        // fft of odd terms
-        Complex[] odd  = even;  // reuse the array
-        for (int k = 0; k < n/2; k++) {
-            odd[k] = x[2*k + 1];
+        // butterfly updates
+        for (int L = 2; L <= n; L = L+L) {
+            for (int j = 0; j < L/2; j++) {
+                double jth = 2 * Math.PI * j / L;
+                Complex w = new Complex(Math.cos(jth), -Math.sin(jth));
+                for (int k = 0; k < n/L; k++) {
+                    Complex tao = w.times(x[k*L + j + L/2]);
+                    x[k*L + j + L/2] = x[k*L + j].minus(tao); 
+                    x[k*L + j]       = x[k*L + j].plus(tao); 
+                }
+            }
         }
-        Complex[] r = fft(odd);
-
-        // combine
-        Complex[] y = new Complex[n];
-        for (int k = 0; k < n/2; k++) {
-            double kth = -2 * k * Math.PI / n;
-            Complex wk = new Complex(Math.cos(kth), Math.sin(kth));
-            y[k]       = q[k].plus(wk.times(r[k]));
-            y[k + n/2] = q[k].minus(wk.times(r[k]));
-        }
-        return y;
+        return x;
     }
 
 
@@ -190,34 +171,5 @@ public class FFT {
     *  4.01805098805014E-17i
     *
     ***************************************************************************/
-
-    public static void main(String[] args) { 
-        int n = Integer.parseInt(args[0]);
-        Complex[] x = new Complex[n];
-
-        // original data
-        for (int i = 0; i < n; i++) {
-            x[i] = new Complex(i, 0);
-            x[i] = new Complex(-2*Math.random() + 1, 0);
-        }
-        show(x, "x");
-
-        // FFT of original data
-        Complex[] y = fft(x);
-        show(y, "y = fft(x)");
-
-        // take inverse FFT
-        Complex[] z = ifft(y);
-        show(z, "z = ifft(y)");
-
-        // circular convolution of x with itself
-        Complex[] c = cconvolve(x, x);
-        show(c, "c = cconvolve(x, x)");
-
-        // linear convolution of x with itself
-        Complex[] d = convolve(x, x);
-        show(d, "d = convolve(x, x)");
-    }
-
 }
 
